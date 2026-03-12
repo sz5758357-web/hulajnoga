@@ -3,96 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HULAJNOGI - SKLEP</title>
+    <title>Hulajnogi - Wyprzedaż 2026</title>
     <style>
+        /* Styl strony startowej */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background: #fff; font-family: sans-serif;
+            overflow: hidden; background: #ffffff; font-family: 'Arial', sans-serif;
             display: flex; justify-content: center; align-items: center;
         }
-        #poczatek { text-align: center; cursor: pointer; }
+        #ekran-startowy { text-align: center; cursor: pointer; z-index: 1; }
+        .ikona { font-size: 100px; }
+        h1 { color: #333; margin: 10px 0; }
         
+        /* Kontener na chaos */
         #chaos {
             display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; z-index: 9999;
+            width: 100vw; height: 100vh; z-index: 9999;
+            background: white;
         }
 
-        /* SZYBKIE BŁYSKI TŁA */
-        .strobe-active { animation: strobe 0.07s infinite; }
+        /* Szybkie błyski tła (stroboskop) */
+        .miganie { animation: strobe 0.05s infinite; }
         @keyframes strobe {
             0% { background: #ff0000; }
-            50% { background: #fff; }
+            50% { background: #ffffff; }
             100% { background: #ff0000; }
         }
 
-        /* EFEKT TRZĘSIENIA (ZAMIAST KRĘCENIA) */
-        .shake-img {
-            position: absolute; width: 200px; z-index: 10000;
-            animation: shake 0.1s infinite;
-        }
-        @keyframes shake {
-            0% { transform: translate(2px, 2px); }
-            25% { transform: translate(-2px, -2px); }
-            50% { transform: translate(-2px, 2px); }
-            75% { transform: translate(2px, -2px); }
-            100% { transform: translate(2px, 2px); }
+        /* Zdjęcia - TYLKO POZYCJA, BEZ KRĘCENIA */
+        .foto {
+            position: absolute; 
+            width: 200px; /* Rozmiar zdjęcia */
+            height: auto;
+            z-index: 10000;
+            pointer-events: none; /* Żeby nie dało się w nie kliknąć */
         }
     </style>
 </head>
-<body onclick="start()">
+<body onclick="uruchom()">
 
-    <div id="poczatek">
-        <h1>PROMOCJA NA HULAJNOGI</h1>
-        <div style="font-size:100px">🛴</div>
-        <p>KLIKNIJ, ABY ZOBACZYĆ CENĘ</p>
+    <div id="ekran-startowy">
+        <div class="ikona">🛴</div>
+        <h1>SUPER HULAJNOGA ZA 1 ZŁ</h1>
+        <p>KLIKNIJ DOWOLNE MIEJSCE, ABY ODEBRAĆ</p>
     </div>
 
     <div id="chaos"></div>
 
     <script>
-        let isOn = false;
-        const imgUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg";
+        let czyDziala = false;
+        const linkDoFoto = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg";
 
-        function start() {
-            if (isOn) return;
-            isOn = true;
+        function uruchom() {
+            if (czyDziala) return;
+            czyDziala = true;
 
-            // AUDIO (Syrena)
+            // 1. DŹWIĘK (Głośna syrena/pisk)
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
+
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'square';
-            gain.gain.setValueAtTime(1, audioCtx.currentTime);
+            osc.type = 'square'; // Agresywny dźwięk
+            gain.gain.setValueAtTime(1, audioCtx.currentTime); // Max głośność w przeglądarce
 
+            // Zmiana tonu (efekt syreny) co 60ms
             setInterval(() => {
-                osc.frequency.setValueAtTime(Math.random() * 1000 + 500, audioCtx.currentTime);
-            }, 100);
+                osc.frequency.setValueAtTime(Math.random() * 1000 + 400, audioCtx.currentTime);
+            }, 60);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
 
-            // WIZUALIA
-            document.getElementById('poczatek').style.display = 'none';
-            const container = document.getElementById('chaos');
-            container.style.display = 'block';
-            container.classList.add('strobe-active');
+            // 2. WIZUALIA (Miganie i ukrycie napisu)
+            document.getElementById('ekran-startowy').style.display = 'none';
+            const kontener = document.getElementById('chaos');
+            kontener.style.display = 'block';
+            kontener.classList.add('miganie');
 
-            // SPAWN ZDJĘĆ (TRZĘSĄCYCH SIĘ)
-            setInterval(() => {
+            // 3. SZYBKIE RESPIENIE ZDJĘĆ (Co 40ms)
+            const intervalSpawn = setInterval(() => {
                 const img = document.createElement('img');
-                img.src = imgUrl;
-                img.className = 'shake-img';
-                img.style.left = Math.random() * (window.innerWidth - 150) + 'px';
-                img.style.top = Math.random() * (window.innerHeight - 150) + 'px';
-                container.appendChild(img);
-                setTimeout(() => img.remove(), 1200);
-            }, 80);
+                img.src = linkDoFoto;
+                img.className = 'foto';
+                
+                // Losowanie pozycji na całym ekranie
+                const x = Math.random() * (window.innerWidth - 200);
+                const y = Math.random() * (window.innerHeight - 200);
+                
+                img.style.left = x + 'px';
+                img.style.top = y + 'px';
+                
+                kontener.appendChild(img);
 
-            // STOP PO 3 MINUTACH
-            setTimeout(() => { location.reload(); }, 180000);
+                // Zdjęcie znika po 1.2 sekundy, żeby nie zamulić procesora
+                setTimeout(() => img.remove(), 1200);
+            }, 40);
+
+            // 4. SAMOCZYNNE WYŁĄCZENIE PO 3 MINUTACH
+            setTimeout(() => {
+                clearInterval(intervalSpawn);
+                osc.stop();
+                location.reload(); // Odświeżenie strony po 3 minutach
+            }, 180000);
         }
     </script>
 </body>
