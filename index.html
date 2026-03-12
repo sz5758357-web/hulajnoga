@@ -2,93 +2,97 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Sklep z Hulajnogami</title>
+    <title>HULAJNOGI - SUPER PROMOCJA</title>
     <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden; /* Blokuje przewijanie podczas efektów */
-            background: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            cursor: pointer;
-        }
-
-        /* Widok początkowy */
-        #content {
+            background: #fff;
+            font-family: sans-serif;
             text-align: center;
+            cursor: pointer;
+            overflow: hidden;
+            height: 100vh;
         }
 
-        /* Nakładka z Papieżem - domyślnie ukryta */
-        #scary-overlay {
+        /* Wygląd strony przed kliknięciem */
+        .sklep {
+            padding-top: 50px;
+        }
+        .scooter {
+            font-size: 80px;
+            margin: 20px;
+        }
+
+        /* EFEKT SPECJALNY */
+        #efekt {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 999;
-            background-color: white;
-            text-align: center;
+            z-index: 9999;
+            background: white;
         }
 
-        #scary-overlay img {
-            height: 100%;
-            width: auto;
+        /* Ruch zdjęcia - trzęsienie i powiększanie */
+        @keyframes ruszajSie {
+            0% { transform: scale(1) translate(0,0) rotate(0); }
+            25% { transform: scale(1.2) translate(10px, -10px) rotate(5deg); }
+            50% { transform: scale(1.5) translate(-10px, 10px) rotate(-5deg); }
+            75% { transform: scale(1.2) translate(10px, 10px) rotate(5deg); }
+            100% { transform: scale(1) translate(0,0) rotate(0); }
         }
 
-        /* Animacja migania ekranu */
-        @keyframes flash {
-            0% { background-color: red; }
-            50% { background-color: yellow; }
-            100% { background-color: blue; }
+        #papiez {
+            height: 80%;
+            margin-top: 5vh;
+            animation: ruszajSie 0.3s infinite; /* Szybki, szarpany ruch */
         }
 
-        .flashing {
-            animation: flash 0.1s infinite;
+        /* Mniejsze, szybkie błyski tła */
+        @keyframes blysk {
+            0% { background-color: #ff0000; }
+            50% { background-color: #ffffff; }
+            100% { background-color: #ff0000; }
+        }
+
+        .aktywne-blyski {
+            animation: blysk 0.2s infinite;
         }
     </style>
 </head>
-<body onclick="startEffect()">
+<body onclick="start()">
 
-    <div id="content">
-        <h1>Najlepsze Hulajnogi Elektryczne 2026</h1>
-        <p>Kliknij gdziekolwiek na ekranie, aby zobaczyć ofertę!</p>
-        <img src="https://via.placeholder.com/400x250?text=Hulajnoga+Turbo" alt="Hulajnoga">
+    <div class="sklep">
+        <h1>NAJTAŃSZE HULAJNOGI W POLSCE</h1>
+        <div class="scooter">🛴💨</div>
+        <p>KLIKNIJ W EKRAN ABY WEJŚĆ DO SKLEPU</p>
     </div>
 
-    <div id="scary-overlay">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Jan_Pawe%C5%82_II_-_u%C5%9bmiechni%C4%99ty.jpg/800px-Jan_Pawe%C5%82_II_-_u%C5%9bmiechni%C4%99ty.jpg" alt="Papież">
+    <div id="efekt">
+        <img id="papiez" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/960px-San_Giovanni_Paolo_II.jpg" alt="JP2">
     </div>
 
     <script>
-        function startEffect() {
-            const overlay = document.getElementById('scary-overlay');
-            const body = document.body;
+        function start() {
+            const ekran = document.getElementById('efekt');
+            ekran.style.display = 'block';
+            ekran.classList.add('aktywne-blyski');
 
-            // 1. Pokazanie obrazu
-            overlay.style.display = 'block';
-
-            // 2. Włączenie migania
-            body.classList.add('flashing');
-
-            // 3. Dźwięk piszczący (wygenerowany przez przeglądarkę)
+            // Generator pisku
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioCtx.createOscillator();
-            oscillator.type = 'sawtooth'; // Piszczący, "ostry" dźwięk
-            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // Częstotliwość 1000Hz
+            oscillator.type = 'sawtooth'; // Piszczący dźwięk
+            oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); // Wysoki pisk
             oscillator.connect(audioCtx.destination);
             oscillator.start();
 
-            // 4. Wyłączenie po 3 minutach (180 000 milisekund)
+            // Wyłączenie po 3 minutach
             setTimeout(() => {
-                overlay.style.display = 'none';
-                body.classList.remove('flashing');
+                ekran.style.display = 'none';
                 oscillator.stop();
-                alert("Efekt zakończony.");
+                location.reload(); // Odświeża stronę na koniec
             }, 180000);
         }
     </script>
