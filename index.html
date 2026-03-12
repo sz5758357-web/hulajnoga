@@ -2,7 +2,8 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>HULAJNOGI - SUPER PROMOCJA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HULAJNOGI - TOTALNA PROMOCJA!</title>
     <style>
         body {
             margin: 0;
@@ -10,21 +11,27 @@
             font-family: sans-serif;
             text-align: center;
             cursor: pointer;
-            overflow: hidden;
+            overflow: hidden; /* Blokuje przewijanie */
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         /* Wygląd strony przed kliknięciem */
-        .sklep {
-            padding-top: 50px;
-        }
-        .scooter {
-            font-size: 80px;
-            margin: 20px;
+        .sklep h1 { font-size: 2.5em; color: #333; }
+        .scooter { font-size: 100px; margin: 30px; }
+        .kliknij { font-size: 1.2em; color: #555; font-weight: bold; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
-        /* EFEKT SPECJALNY */
-        #efekt {
+        /* EFEKT SPECJALNY - KONTENER */
+        #efekt-kontener {
             display: none;
             position: fixed;
             top: 0;
@@ -33,67 +40,124 @@
             height: 100vh;
             z-index: 9999;
             background: white;
+            overflow: hidden;
         }
 
-        /* Ruch zdjęcia - trzęsienie i powiększanie */
-        @keyframes ruszajSie {
-            0% { transform: scale(1) translate(0,0) rotate(0); }
-            25% { transform: scale(1.2) translate(10px, -10px) rotate(5deg); }
-            50% { transform: scale(1.5) translate(-10px, 10px) rotate(-5deg); }
-            75% { transform: scale(1.2) translate(10px, 10px) rotate(5deg); }
-            100% { transform: scale(1) translate(0,0) rotate(0); }
+        /* Styl dla pojedynczego "respiącego się" zdjęcia */
+        .papiez-klon {
+            position: absolute;
+            height: 150px; /* Rozmiar pojedynczego zdjęcia */
+            width: auto;
+            z-index: 10000;
+            /* Szybki, chaotyczny ruch i obrót */
+            animation: ruchChaos 0.4s infinite linear;
         }
 
-        #papiez {
-            height: 80%;
-            margin-top: 5vh;
-            animation: ruszajSie 0.3s infinite; /* Szybki, szarpany ruch */
+        @keyframes ruchChaos {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            25% { transform: translate(15px, -15px) rotate(10deg) scale(1.1); }
+            50% { transform: translate(-15px, 15px) rotate(-10deg) scale(1); }
+            75% { transform: translate(15px, 15px) rotate(10deg) scale(1.1); }
+            100% { transform: translate(0, 0) rotate(0deg) scale(1); }
         }
 
-        /* Mniejsze, szybkie błyski tła */
-        @keyframes blysk {
+        /* Błyski tła kontenera */
+        @keyframes blyskBackground {
             0% { background-color: #ff0000; }
             50% { background-color: #ffffff; }
             100% { background-color: #ff0000; }
         }
 
         .aktywne-blyski {
-            animation: blysk 0.2s infinite;
+            animation: blyskBackground 0.1s infinite; /* Bardzo szybkie błyski */
         }
     </style>
 </head>
 <body onclick="start()">
 
-    <div class="sklep">
-        <h1>NAJTAŃSZE HULAJNOGI W POLSCE</h1>
+    <div class="sklep" id="sklep-wstep">
+        <h1>NAJTAŃSZE HULAJNOGI W POLSCE!</h1>
         <div class="scooter">🛴💨</div>
-        <p>KLIKNIJ W EKRAN ABY WEJŚĆ DO SKLEPU</p>
+        <p class="kliknij">KLIKNIJ W EKRAN, ABY WEJŚĆ DO SKLEPU</p>
     </div>
 
-    <div id="efekt">
-        <img id="papiez" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/960px-San_Giovanni_Paolo_II.jpg" alt="JP2">
-    </div>
+    <div id="efekt-kontener"></div>
 
     <script>
-        function start() {
-            const ekran = document.getElementById('efekt');
-            ekran.style.display = 'block';
-            ekran.classList.add('aktywne-blyski');
+        // Link do zdjęcia, które będzie się duplikować
+        const imageSrc = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/960px-San_Giovanni_Paolo_II.jpg";
+        let efektWlaczony = false;
+        let intervalSpawnu;
+        let oscillator;
 
-            // Generator pisku
+        function start() {
+            if (efektWlaczony) return; // Zapobiega wielokrotnemu uruchomieniu
+            efektWlaczony = true;
+
+            // Ukryj wstęp, pokaż kontener efektu
+            document.getElementById('sklep-wstep').style.display = 'none';
+            const kontener = document.getElementById('efekt-kontener');
+            kontener.style.display = 'block';
+            kontener.classList.add('aktywne-blyski');
+
+            // --- 1. GENEROWANIE DŹWIĘKU (PISK) ---
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            oscillator.type = 'sawtooth'; // Piszczący dźwięk
-            oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); // Wysoki pisk
-            oscillator.connect(audioCtx.destination);
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sawtooth'; // Ostrzejszy, bardziej irytujący dźwięk
+            oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // Bardzo wysoki pisk
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); // Głośność (30%)
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
             oscillator.start();
 
-            // Wyłączenie po 3 minutach
-            setTimeout(() => {
-                ekran.style.display = 'none';
-                oscillator.stop();
-                location.reload(); // Odświeża stronę na koniec
-            }, 180000);
+            // --- 2. "RESPINIE" I RUCH ZDJĘĆ ---
+            // Funkcja tworząca jedno zdjęcie w losowym miejscu
+            function stworzZdjecie() {
+                const img = document.createElement('img');
+                img.src = imageSrc;
+                img.classList.add('papiez-klon');
+                
+                // Losowa pozycja startowa
+                const maxX = window.innerWidth - 150; // Szerokość ekranu minus szerokość zdjęcia
+                const maxY = window.innerHeight - 150; // Wysokość ekranu minus wysokość zdjęcia
+                img.style.left = Math.random() * maxX + 'px';
+                img.style.top = Math.random() * maxY + 'px';
+                
+                kontener.appendChild(img);
+
+                // Usuń zdjęcie po krótkim czasie, żeby nie zabić przeglądarki
+                setTimeout(() => {
+                    img.remove();
+                }, 2000); // Zdjęcie znika po 2 sekundach
+            }
+
+            // Twórz nowe zdjęcie co 100 milisekund (bardzo szybko!)
+            intervalSpawnu = setInterval(stworzZdjecie, 100);
+
+            // --- 3. AUTOMATYCZNE WYŁĄCZENIE PO 3 MINUTACH ---
+            setTimeout(zatrzymajEfekt, 180000); // 180 000 ms = 3 minuty
+        }
+
+        function zatrzymajEfekt() {
+            efektWlaczony = false;
+            clearInterval(intervalSpawnu); // Przestań tworzyć nowe zdjęcia
+            if (oscillator) oscillator.stop(); // Wyłącz dźwięk
+            
+            const kontener = document.getElementById('efekt-kontener');
+            kontener.style.display = 'none';
+            kontener.classList.remove('aktywne-blyski');
+            
+            // Usuń wszystkie pozostałe zdjęcia z kontenera
+            while (kontener.firstChild) {
+                kontener.removeChild(kontener.firstChild);
+            }
+
+            document.getElementById('sklep-wstep').style.display = 'flex';
+            alert("Promocja zakończona. Wróć do przeglądania hulajnóg.");
         }
     </script>
 </body>
