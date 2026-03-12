@@ -3,96 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hulajnogi - Sklep Online</title>
+    <title>Hulajnogi Promocja</title>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background: #fff; font-family: sans-serif;
             display: flex; justify-content: center; align-items: center;
         }
-        #start-screen { text-align: center; cursor: pointer; }
+        #start { text-align: center; cursor: pointer; }
         
-        #chaos-layer {
+        #overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; z-index: 9999;
         }
 
-        /* Szybkie błyski (stroboskop) */
-        .flashing { animation: flash-bg 0.05s infinite; }
-        @keyframes flash-bg {
+        /* Bardzo szybkie błyski */
+        .flash-on { animation: strobe 0.04s infinite; }
+        @keyframes strobe {
             0% { background: #ff0000; }
             50% { background: #ffffff; }
             100% { background: #ff0000; }
         }
 
-        /* Zdjęcia - tylko się pojawiają, zero ruchu */
-        .spawn-img {
+        /* Zdjęcia - tylko się respią, brak ruchu */
+        .pope-img {
             position: absolute; 
-            width: 200px; 
+            width: 220px; 
             z-index: 10000;
             pointer-events: none;
         }
     </style>
 </head>
-<body onclick="launchPrank()">
+<body onclick="odpal()">
 
-    <div id="start-screen">
-        <h1 style="font-size: 40px;">PROMYCJA: HULAJNOGA ELEKTRYCZNA</h1>
-        <div style="font-size: 120px;">🛴</div>
-        <p>KLIKNIJ W DOWOLNYM MIEJSCU, ABY WEJŚĆ</p>
+    <div id="start">
+        <h1 style="font-size: 35px;">SKLEP Z HULAJNOGAMI</h1>
+        <div style="font-size: 100px;">🛴</div>
+        <p>KLIKNIJ, ABY WEJŚĆ DO OFERTY</p>
     </div>
 
-    <div id="chaos-layer"></div>
+    <div id="overlay"></div>
 
     <script>
-        let active = false;
-        const imgPath = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpgg";
+        let running = false;
+        const imgPath = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg";
 
-        function launchPrank() {
-            if (active) return;
-            active = true;
+        function odpal() {
+            if (running) return;
+            running = true;
 
-            // --- STARY DŹWIĘK: STAŁY, WYSOKI PISK ---
+            // --- STARY, WYSOKI, CZYSTY PISK ---
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            osc.type = 'sawtooth'; // Piszczący, "ostry" dźwięk
-            osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // Stała częstotliwość 1000Hz
+            osc.type = 'sine'; // Czysty, wysoki pisk
+            osc.frequency.setValueAtTime(2000, audioCtx.currentTime); // 2000Hz to bardzo wysoki ton
             
-            gain.gain.setValueAtTime(1, audioCtx.currentTime); // Max głośność
+            gain.gain.setValueAtTime(1, audioCtx.currentTime); // Pełna moc
             
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
 
-            // --- WIZUALIA ---
-            document.getElementById('start-screen').style.display = 'none';
-            const layer = document.getElementById('chaos-layer');
+            // --- EFEKTY WIZUALNE ---
+            document.getElementById('start').style.display = 'none';
+            const layer = document.getElementById('overlay');
             layer.style.display = 'block';
-            layer.classList.add('flashing');
+            layer.classList.add('flash-on');
 
             // --- RESPIENIE ZDJĘĆ ---
-            const spawner = setInterval(() => {
+            const interval = setInterval(() => {
                 const img = document.createElement('img');
                 img.src = imgPath;
-                img.className = 'spawn-img';
+                img.className = 'pope-img';
                 
-                // Losowa pozycja
-                img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
-                img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
+                // Losowa pozycja bez kręcenia
+                img.style.left = Math.random() * (window.innerWidth - 220) + 'px';
+                img.style.top = Math.random() * (window.innerHeight - 220) + 'px';
                 
                 layer.appendChild(img);
 
-                // Znika po 1 sekundzie
+                // Usuwanie po sekundzie
                 setTimeout(() => img.remove(), 1000);
-            }, 40); // 25 zdjęć na sekundę
+            }, 45); // Szybkie tempo pojawiania się
 
-            // --- AUTO-STOP PO 3 MINUTACH ---
+            // --- WYŁĄCZENIE PO 3 MINUTACH ---
             setTimeout(() => {
-                clearInterval(spawner);
+                clearInterval(interval);
                 osc.stop();
                 location.reload(); 
             }, 180000);
