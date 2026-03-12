@@ -2,98 +2,97 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>HULAJNOGI - SUPER PROMOCJA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HULAJNOGI - SKLEP</title>
     <style>
-        body {
-            margin: 0;
-            background: #fff;
-            font-family: sans-serif;
-            text-align: center;
-            cursor: pointer;
-            overflow: hidden;
-            height: 100vh;
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #fff; font-family: sans-serif;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #poczatek { text-align: center; cursor: pointer; }
+        
+        #chaos {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 9999;
         }
 
-        /* Wygląd strony przed kliknięciem */
-        .sklep {
-            padding-top: 50px;
-        }
-        .scooter {
-            font-size: 80px;
-            margin: 20px;
-        }
-
-        /* EFEKT SPECJALNY */
-        #efekt {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-            background: white;
+        /* SZYBKIE BŁYSKI TŁA */
+        .strobe-active { animation: strobe 0.07s infinite; }
+        @keyframes strobe {
+            0% { background: #ff0000; }
+            50% { background: #fff; }
+            100% { background: #ff0000; }
         }
 
-        /* Ruch zdjęcia - trzęsienie i powiększanie */
-        @keyframes ruszajSie {
-            0% { transform: scale(1) translate(0,0) rotate(0); }
-            25% { transform: scale(1.2) translate(10px, -10px) rotate(5deg); }
-            50% { transform: scale(1.5) translate(-10px, 10px) rotate(-5deg); }
-            75% { transform: scale(1.2) translate(10px, 10px) rotate(5deg); }
-            100% { transform: scale(1) translate(0,0) rotate(0); }
+        /* EFEKT TRZĘSIENIA (ZAMIAST KRĘCENIA) */
+        .shake-img {
+            position: absolute; width: 200px; z-index: 10000;
+            animation: shake 0.1s infinite;
         }
-
-        #papiez {
-            height: 80%;
-            margin-top: 5vh;
-            animation: ruszajSie 0.3s infinite; /* Szybki, szarpany ruch */
-        }
-
-        /* Mniejsze, szybkie błyski tła */
-        @keyframes blysk {
-            0% { background-color: #ff0000; }
-            50% { background-color: #ffffff; }
-            100% { background-color: #ff0000; }
-        }
-
-        .aktywne-blyski {
-            animation: blysk 0.2s infinite;
+        @keyframes shake {
+            0% { transform: translate(2px, 2px); }
+            25% { transform: translate(-2px, -2px); }
+            50% { transform: translate(-2px, 2px); }
+            75% { transform: translate(2px, -2px); }
+            100% { transform: translate(2px, 2px); }
         }
     </style>
 </head>
 <body onclick="start()">
 
-    <div class="sklep">
-        <h1>NAJTAŃSZE HULAJNOGI W POLSCE</h1>
-        <div class="scooter">🛴💨</div>
-        <p>KLIKNIJ W EKRAN ABY WEJŚĆ DO SKLEPU</p>
+    <div id="poczatek">
+        <h1>PROMOCJA NA HULAJNOGI</h1>
+        <div style="font-size:100px">🛴</div>
+        <p>KLIKNIJ, ABY ZOBACZYĆ CENĘ</p>
     </div>
 
-    <div id="efekt">
-        <img id="papiez" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg">
-    </div>
+    <div id="chaos"></div>
 
     <script>
+        let isOn = false;
+        const imgUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg";
+
         function start() {
-            const ekran = document.getElementById('efekt');
-            ekran.style.display = 'block';
-            ekran.classList.add('aktywne-blyski');
+            if (isOn) return;
+            isOn = true;
 
-            // Generator pisku
+            // AUDIO (Syrena)
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            oscillator.type = 'sawtooth'; // Piszczący dźwięk
-            oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); // Wysoki pisk
-            oscillator.connect(audioCtx.destination);
-            oscillator.start();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            gain.gain.setValueAtTime(1, audioCtx.currentTime);
 
-            // Wyłączenie po 3 minutach
-            setTimeout(() => {
-                ekran.style.display = 'none';
-                oscillator.stop();
-                location.reload(); // Odświeża stronę na koniec
-            }, 180000);
+            setInterval(() => {
+                osc.frequency.setValueAtTime(Math.random() * 1000 + 500, audioCtx.currentTime);
+            }, 100);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+
+            // WIZUALIA
+            document.getElementById('poczatek').style.display = 'none';
+            const container = document.getElementById('chaos');
+            container.style.display = 'block';
+            container.classList.add('strobe-active');
+
+            // SPAWN ZDJĘĆ (TRZĘSĄCYCH SIĘ)
+            setInterval(() => {
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.className = 'shake-img';
+                img.style.left = Math.random() * (window.innerWidth - 150) + 'px';
+                img.style.top = Math.random() * (window.innerHeight - 150) + 'px';
+                container.appendChild(img);
+                setTimeout(() => img.remove(), 1200);
+            }, 80);
+
+            // STOP PO 3 MINUTACH
+            setTimeout(() => { location.reload(); }, 180000);
         }
     </script>
 </body>
