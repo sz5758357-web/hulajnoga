@@ -24,15 +24,12 @@ nav a{
   font-weight:bold;
 }
 
-section{
-  padding:50px 20px;
-}
-
 .container{
   display:flex;
   justify-content:center;
   flex-wrap:wrap;
   gap:30px;
+  padding:40px;
 }
 
 .card{
@@ -87,14 +84,12 @@ section{
 
 <section id="home">
   <h1>Najlepsze hulajnogi elektryczne</h1>
-  <p>Kliknij gdziekolwiek, aby zobaczyć promocję!</p>
+  <p>Kliknij gdziekolwiek, aby zobaczyć efekt!</p>
 </section>
 
 <section id="hulajnogi">
   <h2>Nasze hulajnogi</h2>
-  <div class="container" id="scooters-container">
-    <!-- Tutaj dodasz własne hulajnogi -->
-  </div>
+  <div class="container" id="scooters-container"></div>
 </section>
 
 <section id="kontakt">
@@ -105,23 +100,17 @@ section{
 <div id="flash"></div>
 
 <audio id="sound" loop>
-  <source src="nie-wiem_VQg1yPV.mp3">
+  <source src="sound.mp3">
 </audio>
 
 <script>
-let started=false
-let interval
-
-// Tutaj dodajesz swoje hulajnogi w prosty sposób
+// Tablica hulajnóg – tu możesz dodawać nowe zdjęcia
 const scooters = [
-  {img:"pobrany plik5.jpg", name:"Kukirin G4", speed:"60 km/h", price:"999 zł"},
-  {img:"pobrany plik3.png", name:"Kamikaze k1 max", speed:"55 km/h", price:"899 zł"},
-  // dodaj kolejne hulajnogi tak:
-  // {img:"hulajnoga3.jpg", name:"Nazwa", speed:"xx km/h", price:"xxxx zł"}
+  {img:"pobranyplik5.jpg", name:"Kukirin G4", speed:"55 km/h", price:"999 zł"},
+  {img:"pobranyplik3.png", name:"Kukirin", speed:"50 km/h", price:"899 zł"}
 ]
 
 const container = document.getElementById("scooters-container")
-
 scooters.forEach(s=>{
   const div = document.createElement("div")
   div.className="card"
@@ -134,22 +123,25 @@ scooters.forEach(s=>{
   container.appendChild(div)
 })
 
+let started=false
+let interval
+
 document.body.onclick=function(){
   if(started) return
   started=true
 
-  // Miganie
+  // miganie ekranu
   document.getElementById("flash").classList.add("flash")
 
-  // Dźwięk
+  // odtwarzanie dźwięku
   let sound=document.getElementById("sound")
   sound.play()
 
-  // Papieże
+  // wyskakujące papieże
   interval=setInterval(function(){
     for(let i=0;i<6;i++){
       let img=document.createElement("img")
-      img.src="pobrany plikk.jpg" // tutaj możesz podmienić plik na inny
+      img.src="pobrany plikk.jpg" // podmień jeśli chcesz inny obraz
       img.className="pope"
       img.style.left=Math.random()*window.innerWidth+"px"
       img.style.top=Math.random()*window.innerHeight+"px"
@@ -157,7 +149,7 @@ document.body.onclick=function(){
     }
   },200)
 
-  // Wyłączenie po 3 minutach
+  // automatyczne wyłączenie po 3 minutach
   setTimeout(function(){
     document.getElementById("flash").classList.remove("flash")
     sound.pause()
