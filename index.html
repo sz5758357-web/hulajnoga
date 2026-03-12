@@ -2,162 +2,104 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HULAJNOGI - TOTALNA PROMOCJA!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HULAJNOGI - SKLEP</title>
     <style>
-        body {
-            margin: 0;
-            background: #fff;
-            font-family: sans-serif;
-            text-align: center;
-            cursor: pointer;
-            overflow: hidden; /* Blokuje przewijanie */
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #fff; font-family: sans-serif;
+            display: flex; justify-content: center; align-items: center; touch-action: none;
+        }
+        #promo { text-align: center; cursor: pointer; }
+        .scooter { font-size: 80px; }
+        
+        /* Kontener na spam zdjęć */
+        #chaos-container {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 9999;
         }
 
-        /* Wygląd strony przed kliknięciem */
-        .sklep h1 { font-size: 2.5em; color: #333; }
-        .scooter { font-size: 100px; margin: 30px; }
-        .kliknij { font-size: 1.2em; color: #555; font-weight: bold; animation: pulse 1s infinite; }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+        /* Animacja migania */
+        @keyframes strobe {
+            0% { background: #ff0000; }
+            50% { background: #fff; }
+            100% { background: #0000ff; }
         }
+        .strobe-active { animation: strobe 0.05s infinite; }
 
-        /* EFEKT SPECJALNY - KONTENER */
-        #efekt-kontener {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-            background: white;
-            overflow: hidden;
+        /* Animacja latających zdjęć */
+        .flying-img {
+            position: absolute; width: 150px; z-index: 10000;
+            animation: spin 0.2s infinite linear;
         }
-
-        /* Styl dla pojedynczego "respiącego się" zdjęcia */
-        .papiez-klon {
-            position: absolute;
-            height: 150px; /* Rozmiar pojedynczego zdjęcia */
-            width: auto;
-            z-index: 10000;
-            /* Szybki, chaotyczny ruch i obrót */
-            animation: ruchChaos 0.4s infinite linear;
-        }
-
-        @keyframes ruchChaos {
-            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            25% { transform: translate(15px, -15px) rotate(10deg) scale(1.1); }
-            50% { transform: translate(-15px, 15px) rotate(-10deg) scale(1); }
-            75% { transform: translate(15px, 15px) rotate(10deg) scale(1.1); }
-            100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-        }
-
-        /* Błyski tła kontenera */
-        @keyframes blyskBackground {
-            0% { background-color: #ff0000; }
-            50% { background-color: #ffffff; }
-            100% { background-color: #ff0000; }
-        }
-
-        .aktywne-blyski {
-            animation: blyskBackground 0.1s infinite; /* Bardzo szybkie błyski */
+        @keyframes spin {
+            from { transform: rotate(0deg) scale(1.5); }
+            to { transform: rotate(360deg) scale(0.5); }
         }
     </style>
 </head>
-<body onclick="start()">
+<body onclick="launch()">
 
-    <div class="sklep" id="sklep-wstep">
-        <h1>NAJTAŃSZE HULAJNOGI W POLSCE!</h1>
-        <div class="scooter">🛴💨</div>
-        <p class="kliknij">KLIKNIJ W EKRAN, ABY WEJŚĆ DO SKLEPU</p>
+    <div id="promo">
+        <h1>NAJLEPSZE HULAJNOGI 2026</h1>
+        <div class="scooter">🛴</div>
+        <p>DOTKNIJ EKRANU, ABY ODEBRAĆ RABAT -90%</p>
     </div>
 
-    <div id="efekt-kontener"></div>
+    <div id="chaos-container"></div>
 
     <script>
-        // Link do zdjęcia, które będzie się duplikować
-        const imageSrc = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/960px-San_Giovanni_Paolo_II.jpg";
-        let efektWlaczony = false;
-        let intervalSpawnu;
-        let oscillator;
+        let isRunning = false;
+        const imgUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5b/Jan_Pawe%C5%82_II_-_u%C5%9bmiechni%C4%99ty.jpg";
 
-        function start() {
-            if (efektWlaczony) return; // Zapobiega wielokrotnemu uruchomieniu
-            efektWlaczony = true;
+        function launch() {
+            if (isRunning) return;
+            isRunning = true;
 
-            // Ukryj wstęp, pokaż kontener efektu
-            document.getElementById('sklep-wstep').style.display = 'none';
-            const kontener = document.getElementById('efekt-kontener');
-            kontener.style.display = 'block';
-            kontener.classList.add('aktywne-blyski');
-
-            // --- 1. GENEROWANIE DŹWIĘKU (PISK) ---
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-
-            oscillator.type = 'sawtooth'; // Ostrzejszy, bardziej irytujący dźwięk
-            oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // Bardzo wysoki pisk
+            // 1. OMINIĘCIE BLOKADY AUDIO (Audio Context Resume)
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
             
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); // Głośność (30%)
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
+            // Wymuszenie startu audio na mobilkach
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
 
-            // --- 2. "RESPINIE" I RUCH ZDJĘĆ ---
-            // Funkcja tworząca jedno zdjęcie w losowym miejscu
-            function stworzZdjecie() {
+            // Tworzenie ultra-pisku
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square'; // Najbardziej agresywny typ fali
+            osc.frequency.setValueAtTime(2000, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+
+            // 2. URUCHOMIENIE WIZUALNEGO CHAOSU
+            document.getElementById('promo').style.display = 'none';
+            const container = document.getElementById('chaos-container');
+            container.style.display = 'block';
+            container.classList.add('strobe-active');
+
+            // 3. SPAM ZDJĘCIAMI (Respią się wszędzie)
+            const spawnInterval = setInterval(() => {
                 const img = document.createElement('img');
-                img.src = imageSrc;
-                img.classList.add('papiez-klon');
-                
-                // Losowa pozycja startowa
-                const maxX = window.innerWidth - 150; // Szerokość ekranu minus szerokość zdjęcia
-                const maxY = window.innerHeight - 150; // Wysokość ekranu minus wysokość zdjęcia
-                img.style.left = Math.random() * maxX + 'px';
-                img.style.top = Math.random() * maxY + 'px';
-                
-                kontener.appendChild(img);
+                img.src = imgUrl;
+                img.className = 'flying-img';
+                img.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+                img.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+                container.appendChild(img);
 
-                // Usuń zdjęcie po krótkim czasie, żeby nie zabić przeglądarki
-                setTimeout(() => {
-                    img.remove();
-                }, 2000); // Zdjęcie znika po 2 sekundach
-            }
+                // Usuwanie, żeby nie zacięło telefonu
+                setTimeout(() => img.remove(), 1000);
+            }, 50); // Nowe zdjęcie co 0.05 sekundy!
 
-            // Twórz nowe zdjęcie co 100 milisekund (bardzo szybko!)
-            intervalSpawnu = setInterval(stworzZdjecie, 100);
-
-            // --- 3. AUTOMATYCZNE WYŁĄCZENIE PO 3 MINUTACH ---
-            setTimeout(zatrzymajEfekt, 180000); // 180 000 ms = 3 minuty
-        }
-
-        function zatrzymajEfekt() {
-            efektWlaczony = false;
-            clearInterval(intervalSpawnu); // Przestań tworzyć nowe zdjęcia
-            if (oscillator) oscillator.stop(); // Wyłącz dźwięk
-            
-            const kontener = document.getElementById('efekt-kontener');
-            kontener.style.display = 'none';
-            kontener.classList.remove('aktywne-blyski');
-            
-            // Usuń wszystkie pozostałe zdjęcia z kontenera
-            while (kontener.firstChild) {
-                kontener.removeChild(kontener.firstChild);
-            }
-
-            document.getElementById('sklep-wstep').style.display = 'flex';
-            alert("Promocja zakończona. Wróć do przeglądania hulajnóg.");
+            // 4. AUTO-WYŁĄCZENIE PO 3 MINUTACH
+            setTimeout(() => {
+                clearInterval(spawnInterval);
+                osc.stop();
+                location.reload(); 
+            }, 180000);
         }
     </script>
 </body>
