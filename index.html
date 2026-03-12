@@ -3,109 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hulajnogi - Wyprzedaż 2026</title>
+    <title>Hulajnogi - Sklep Online</title>
     <style>
-        /* Styl strony startowej */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background: #ffffff; font-family: 'Arial', sans-serif;
+            overflow: hidden; background: #fff; font-family: sans-serif;
             display: flex; justify-content: center; align-items: center;
         }
-        #ekran-startowy { text-align: center; cursor: pointer; z-index: 1; }
-        .ikona { font-size: 100px; }
-        h1 { color: #333; margin: 10px 0; }
+        #start-screen { text-align: center; cursor: pointer; }
         
-        /* Kontener na chaos */
-        #chaos {
+        #chaos-layer {
             display: none; position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh; z-index: 9999;
-            background: white;
+            width: 100%; height: 100%; z-index: 9999;
         }
 
-        /* Szybkie błyski tła (stroboskop) */
-        .miganie { animation: strobe 0.05s infinite; }
-        @keyframes strobe {
+        /* Szybkie błyski (stroboskop) */
+        .flashing { animation: flash-bg 0.05s infinite; }
+        @keyframes flash-bg {
             0% { background: #ff0000; }
             50% { background: #ffffff; }
             100% { background: #ff0000; }
         }
 
-        /* Zdjęcia - TYLKO POZYCJA, BEZ KRĘCENIA */
-        .foto {
+        /* Zdjęcia - tylko się pojawiają, zero ruchu */
+        .spawn-img {
             position: absolute; 
-            width: 200px; /* Rozmiar zdjęcia */
-            height: auto;
+            width: 200px; 
             z-index: 10000;
-            pointer-events: none; /* Żeby nie dało się w nie kliknąć */
+            pointer-events: none;
         }
     </style>
 </head>
-<body onclick="uruchom()">
+<body onclick="launchPrank()">
 
-    <div id="ekran-startowy">
-        <div class="ikona">🛴</div>
-        <h1>SUPER HULAJNOGA ZA 1 ZŁ</h1>
-        <p>KLIKNIJ DOWOLNE MIEJSCE, ABY ODEBRAĆ</p>
+    <div id="start-screen">
+        <h1 style="font-size: 40px;">PROMYCJA: HULAJNOGA ELEKTRYCZNA</h1>
+        <div style="font-size: 120px;">🛴</div>
+        <p>KLIKNIJ W DOWOLNYM MIEJSCU, ABY WEJŚĆ</p>
     </div>
 
-    <div id="chaos"></div>
+    <div id="chaos-layer"></div>
 
     <script>
-        let czyDziala = false;
-        const linkDoFoto = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpg";
+        let active = false;
+        const imgPath = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/San_Giovanni_Paolo_II.jpg/250px-San_Giovanni_Paolo_II.jpgg";
 
-        function uruchom() {
-            if (czyDziala) return;
-            czyDziala = true;
+        function launchPrank() {
+            if (active) return;
+            active = true;
 
-            // 1. DŹWIĘK (Głośna syrena/pisk)
+            // --- STARY DŹWIĘK: STAŁY, WYSOKI PISK ---
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
+            
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'square'; // Agresywny dźwięk
-            gain.gain.setValueAtTime(1, audioCtx.currentTime); // Max głośność w przeglądarce
-
-            // Zmiana tonu (efekt syreny) co 60ms
-            setInterval(() => {
-                osc.frequency.setValueAtTime(Math.random() * 1000 + 400, audioCtx.currentTime);
-            }, 60);
-
+            
+            osc.type = 'sawtooth'; // Piszczący, "ostry" dźwięk
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // Stała częstotliwość 1000Hz
+            
+            gain.gain.setValueAtTime(1, audioCtx.currentTime); // Max głośność
+            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
 
-            // 2. WIZUALIA (Miganie i ukrycie napisu)
-            document.getElementById('ekran-startowy').style.display = 'none';
-            const kontener = document.getElementById('chaos');
-            kontener.style.display = 'block';
-            kontener.classList.add('miganie');
+            // --- WIZUALIA ---
+            document.getElementById('start-screen').style.display = 'none';
+            const layer = document.getElementById('chaos-layer');
+            layer.style.display = 'block';
+            layer.classList.add('flashing');
 
-            // 3. SZYBKIE RESPIENIE ZDJĘĆ (Co 40ms)
-            const intervalSpawn = setInterval(() => {
+            // --- RESPIENIE ZDJĘĆ ---
+            const spawner = setInterval(() => {
                 const img = document.createElement('img');
-                img.src = linkDoFoto;
-                img.className = 'foto';
+                img.src = imgPath;
+                img.className = 'spawn-img';
                 
-                // Losowanie pozycji na całym ekranie
-                const x = Math.random() * (window.innerWidth - 200);
-                const y = Math.random() * (window.innerHeight - 200);
+                // Losowa pozycja
+                img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+                img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
                 
-                img.style.left = x + 'px';
-                img.style.top = y + 'px';
-                
-                kontener.appendChild(img);
+                layer.appendChild(img);
 
-                // Zdjęcie znika po 1.2 sekundy, żeby nie zamulić procesora
-                setTimeout(() => img.remove(), 1200);
-            }, 40);
+                // Znika po 1 sekundzie
+                setTimeout(() => img.remove(), 1000);
+            }, 40); // 25 zdjęć na sekundę
 
-            // 4. SAMOCZYNNE WYŁĄCZENIE PO 3 MINUTACH
+            // --- AUTO-STOP PO 3 MINUTACH ---
             setTimeout(() => {
-                clearInterval(intervalSpawn);
+                clearInterval(spawner);
                 osc.stop();
-                location.reload(); // Odświeżenie strony po 3 minutach
+                location.reload(); 
             }, 180000);
         }
     </script>
