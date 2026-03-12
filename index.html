@@ -1,164 +1,96 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<title>Hulajnogi</title>
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  text-align:center;
-  background:#f5f5f5;
-  overflow:hidden;
-}
+    <meta charset="UTF-8">
+    <title>Sklep z Hulajnogami</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden; /* Blokuje przewijanie podczas efektów */
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            cursor: pointer;
+        }
 
-nav{
-  background:#222;
-  padding:15px;
-}
+        /* Widok początkowy */
+        #content {
+            text-align: center;
+        }
 
-nav a{
-  color:white;
-  margin:0 15px;
-  text-decoration:none;
-  font-weight:bold;
-}
+        /* Nakładka z Papieżem - domyślnie ukryta */
+        #scary-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 999;
+            background-color: white;
+            text-align: center;
+        }
 
-.container{
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:30px;
-  padding:40px;
-}
+        #scary-overlay img {
+            height: 100%;
+            width: auto;
+        }
 
-.card{
-  background:white;
-  padding:20px;
-  width:220px;
-  border-radius:10px;
-  box-shadow:0 0 10px rgba(0,0,0,0.2);
-}
+        /* Animacja migania ekranu */
+        @keyframes flash {
+            0% { background-color: red; }
+            50% { background-color: yellow; }
+            100% { background-color: blue; }
+        }
 
-.card img{
-  width:100%;
-  border-radius:6px;
-}
-
-#flash{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
-  background:red;
-  opacity:0;
-  pointer-events:none;
-  z-index:998;
-}
-
-.flash{
-  animation:kigotanie 0.05s infinite;
-}
-
-@keyframes kigotanie{
-  0%{opacity:0;}
-  50%{opacity:1;}
-  100%{opacity:0;}
-}
-
-.pope{
-  position:fixed;
-  width:250px;
-  z-index:999;
-}
-</style>
+        .flashing {
+            animation: flash 0.1s infinite;
+        }
+    </style>
 </head>
-<body>
+<body onclick="startEffect()">
 
-<nav>
-  <a href="#home">Strona główna</a>
-  <a href="#hulajnogi">Hulajnogi</a>
-  <a href="#kontakt">Kontakt</a>
-</nav>
+    <div id="content">
+        <h1>Najlepsze Hulajnogi Elektryczne 2026</h1>
+        <p>Kliknij gdziekolwiek na ekranie, aby zobaczyć ofertę!</p>
+        <img src="https://via.placeholder.com/400x250?text=Hulajnoga+Turbo" alt="Hulajnoga">
+    </div>
 
-<section id="home">
-  <h1>Najlepsze hulajnogi elektryczne</h1>
-  <p>Kliknij gdziekolwiek, aby zobaczyć efekt!</p>
-</section>
+    <div id="scary-overlay">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Jan_Pawe%C5%82_II_-_u%C5%9bmiechni%C4%99ty.jpg/800px-Jan_Pawe%C5%82_II_-_u%C5%9bmiechni%C4%99ty.jpg" alt="Papież">
+    </div>
 
-<section id="hulajnogi">
-  <h2>Nasze hulajnogi</h2>
-  <div class="container" id="scooters-container"></div>
-</section>
+    <script>
+        function startEffect() {
+            const overlay = document.getElementById('scary-overlay');
+            const body = document.body;
 
-<section id="kontakt">
-  <h2>Kontakt</h2>
-  <p>Email: hulajnogi@sklep.pl</p>
-</section>
+            // 1. Pokazanie obrazu
+            overlay.style.display = 'block';
 
-<div id="flash"></div>
+            // 2. Włączenie migania
+            body.classList.add('flashing');
 
-<audio id="sound" loop>
-  <source src="sound.mp3">
-</audio>
+            // 3. Dźwięk piszczący (wygenerowany przez przeglądarkę)
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sawtooth'; // Piszczący, "ostry" dźwięk
+            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // Częstotliwość 1000Hz
+            oscillator.connect(audioCtx.destination);
+            oscillator.start();
 
-<script>
-// Tablica hulajnóg – tu możesz dodawać nowe zdjęcia
-const scooters = [
-  {img:"pobranyplik5.jpg", name:"Kukirin G4", speed:"55 km/h", price:"999 zł"},
-  {img:"pobranyplik3.png", name:"Kukirin", speed:"50 km/h", price:"899 zł"}
-]
-
-const container = document.getElementById("scooters-container")
-scooters.forEach(s=>{
-  const div = document.createElement("div")
-  div.className="card"
-  div.innerHTML=`
-    <img src="${s.img}">
-    <h3>${s.name}</h3>
-    <p>${s.speed}</p>
-    <p>${s.price}</p>
-  `
-  container.appendChild(div)
-})
-
-let started=false
-let interval
-
-document.body.onclick=function(){
-  if(started) return
-  started=true
-
-  // miganie ekranu
-  document.getElementById("flash").classList.add("flash")
-
-  // odtwarzanie dźwięku
-  let sound=document.getElementById("sound")
-  sound.play()
-
-  // wyskakujące papieże
-  interval=setInterval(function(){
-    for(let i=0;i<6;i++){
-      let img=document.createElement("img")
-      img.src="pobrany plikk.jpg" // podmień jeśli chcesz inny obraz
-      img.className="pope"
-      img.style.left=Math.random()*window.innerWidth+"px"
-      img.style.top=Math.random()*window.innerHeight+"px"
-      document.body.appendChild(img)
-    }
-  },200)
-
-  // automatyczne wyłączenie po 3 minutach
-  setTimeout(function(){
-    document.getElementById("flash").classList.remove("flash")
-    sound.pause()
-    sound.currentTime=0
-    clearInterval(interval)
-    document.querySelectorAll(".pope").forEach(e=>e.remove())
-  },180000)
-}
-</script>
-
+            // 4. Wyłączenie po 3 minutach (180 000 milisekund)
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                body.classList.remove('flashing');
+                oscillator.stop();
+                alert("Efekt zakończony.");
+            }, 180000);
+        }
+    </script>
 </body>
 </html>
